@@ -1,6 +1,8 @@
 const userService = require('../../services/auth');
 const { authValidateSchema } = require('../../utils/schema');
 const gravatar = require('gravatar');
+const { v4: uuidv4 } = require('uuid');
+const { sendMail } = require('../../utils/sendMail');
 
 const registr = async (req, res, next) => {
   const { email, password } = req.body;
@@ -17,7 +19,7 @@ const registr = async (req, res, next) => {
   }
 
   const result = await userService.getOne({ email });
-  console.log(result);
+
   if (result) {
     res.status(409).json({
       status: 'Conflict',
@@ -27,14 +29,25 @@ const registr = async (req, res, next) => {
     return;
   }
   try {
+    const verificationToken = uuidv4();
     const avatarURL = gravatar.url(email);
 
-    await userService.add({ email, password, avatarURL });
+    await userService.add({ email, password, avatarURL, verificationToken });
+
+    const mail = {
+      to: 'web.klemenko@gmail.com',
+      subject: 'test verification',
+      text: 'Need to verify your email',
+      html: `<a href="http://localhost:3000/api/auth/users/verify/${verificationToken}">
+          Нажмите для подтверждения email
+        </a>`,
+    };
+    await sendMail(mail);
 
     res.status(201).json({
       status: 'Success',
       code: 201,
-      message: 'Registrtion success',
+      message: 'Registrtion success, need to verify email',
     });
   } catch (error) {
     next(error);
