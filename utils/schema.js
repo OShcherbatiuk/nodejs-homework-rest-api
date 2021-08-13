@@ -19,4 +19,13 @@ const authValidateSchema = Joi.object({
   password: Joi.string().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).required(),
 });
 
-module.exports = { contactSchema, authValidateSchema };
+const validateEmail = Joi.object({
+  email: Joi.string()
+    .email({
+      minDomainSegments: 2,
+      tlds: { allow: ['com', 'net', 'ua', 'ru', 'en'] },
+    })
+    .required(),
+});
+
+module.exports = { contactSchema, authValidateSchema, validateEmail };

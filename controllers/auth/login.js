@@ -28,6 +28,14 @@ const login = async (req, res, next) => {
       });
     }
 
+    if (!user.verify) {
+      res.status(403).json({
+        status: 'Forbidden',
+        code: 401,
+        message: 'Email not veryfied',
+      });
+    }
+
     const { SECRET_KEY } = process.env;
     const payload = {
       id: user._id,
